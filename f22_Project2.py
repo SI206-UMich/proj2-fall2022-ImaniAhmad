@@ -79,8 +79,49 @@ def get_listing_information(listing_id):
         number of bedrooms
     )
     """
-    pass
+    listing = "html_files/listing_" + listing_id + ".html"
+    f = open(listing,'r')
+    content = f.read()
+    f.close()
+    soup = BeautifulSoup(content, 'html.parser')
 
+    #policy number (string - "policy num", "Pending", "Exempt")
+    host = soup.find('li',class_="f19phm7j dir dir-ltr")
+    pn = host.find('span').text
+    #print(pn)
+    policy_num = ""
+    if "STR" in pn:
+        policy_num = pn
+    if "Pending" in pn or "pending" in pn:
+        policy_num = "Pending"
+    if policy_num != pn and policy_num != "Pending":
+        policy_num = "Exempt"
+    
+
+    #place type (string - "Entire Room", "Private Room", "Shared Room")
+    search = soup.find('h2').text
+    #print(search)
+    place_type = ""
+    if "Private" in search or "private" in search:
+        place_type = "Private Room"
+    if "Shared" in search or "shared" in search:
+        place_type = "Shared Room"
+    if place_type != "Private Room" and place_type != "Shared Room":
+        place_type = "Entire Room"
+    #print(place_type)
+
+    #bedroom number (integer)
+    find = soup.find_all('li',class_='l7n4lsf dir dir-ltr')
+    bedrooms = find[1]
+    spans = bedrooms.find_all('span')
+    #print(spans)
+    bedroom_num = spans[2].text
+    num = int(bedroom_num[0])
+    #print(num)
+
+    tup = (policy_num,place_type, num)
+    #print(tup)
+    return tup
 
 def get_detailed_listing_database(html_file):
     """
@@ -202,12 +243,11 @@ class TestCases(unittest.TestCase):
             # check that the third element in the tuple is an int
             self.assertEqual(type(listing_information[2]), int)
         # check that the first listing in the html_list has policy number 'STR-0001541'
-
+        self.assertEqual(listing_informations[0][0], 'STR-0001541')
         # check that the last listing in the html_list is a "Private Room"
-
+        self.assertEqual(listing_informations[-1][1], "Private Room")
         # check that the third listing has one bedroom
-
-        pass
+        self.assertEqual(listing_informations[2][2], 1)
 
     def test_get_detailed_listing_database(self):
         # call get_detailed_listing_database on "html_files/mission_district_search_results.html"
