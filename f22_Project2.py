@@ -90,7 +90,9 @@ def get_listing_information(listing_id):
     pn = host.find('span').text
     #print(pn)
     policy_num = ""
-    if "STR" in pn:
+    if "STR" in pn and "-" in pn:
+        policy_num = pn
+    if any(char.isdigit() for char in pn) == True:
         policy_num = pn
     if "Pending" in pn or "pending" in pn:
         policy_num = "Pending"
@@ -197,7 +199,21 @@ def check_policy_numbers(data):
     ]
 
     """
-    pass
+    reg_ex = r'((?:20\d{2}-00\d{4}STR)|(?:STR-000\d{4}))'
+    l = []
+    incorrect = []
+
+    for tup in data:
+        if tup[3] != "Pending" and tup[3] != "Exempt":
+            l.append((tup[3],tup[2]))
+    for pn in l:
+        match = re.search(reg_ex, pn[0])
+        if match == None:
+            incorrect.append(pn[1])
+
+    print(incorrect)
+    return incorrect
+
 
 
 def extra_credit(listing_id):
@@ -311,11 +327,11 @@ class TestCases(unittest.TestCase):
         # check that the return value is a list
         self.assertEqual(type(invalid_listings), list)
         # check that there is exactly one element in the string
-
+        self.assertEqual(len(invalid_listings),1)
         # check that the element in the list is a string
-
+        self.assertEqual(type(invalid_listings[0]),str)
         # check that the first element in the list is '16204265'
-        pass
+        self.assertEqual(invalid_listings[0],'16204265')
 
 
 if __name__ == '__main__':
